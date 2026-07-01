@@ -1,0 +1,14 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Bloquea acceso directo a archivos y carpetas sensibles de Laravel
+    RewriteRule ^(app|bootstrap|config|database|resources|routes|storage|tests|vendor)(/|$) - [F,L,NC]
+    RewriteRule ^(\.env|\.git|artisan|composer\.(json|lock)|package(-lock)?\.json|vite\.config\.js|phpunit\.xml|README\.md)$ - [F,L,NC]
+
+    # Evita reescritura infinita si la URL ya apunta a /public
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^$ public/ [L]
+
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
