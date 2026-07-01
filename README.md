@@ -1,58 +1,218 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Backend GRCV
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+API Laravel para el sistema de Gestion, Registro y Control de Vacaciones.
 
-## About Laravel
+Este backend expone los endpoints usados por el formulario publico de solicitudes y por el dashboard administrativo. Tambien genera el PDF de la solicitud, sirve adjuntos por endpoint y centraliza la autenticacion con Sanctum.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- PHP 8.3
+- Laravel 13
+- Laravel Sanctum
+- MySQL
+- barryvdh/laravel-dompdf
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Funcionalidades
 
-## Learning Laravel
+- Registro publico de solicitudes de vacaciones.
+- Consulta de datos del trabajador por documento en `/api/employee-info`.
+- Generacion de PDF por cada solicitud.
+- Descarga del PDF y del adjunto mediante endpoints.
+- Dashboard autenticado con roles.
+- Gestion de usuarios, colaboradores y estados de solicitudes.
+- Cambio de clave del usuario autenticado.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Estructura
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```text
+back/
+  app/
+    Http/Controllers/Api/
+    Mail/
+    Models/
+    Services/
+  config/
+  database/
+  public/
+  resources/views/
+  routes/
+  storage/
+  tests/
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## Requisitos
 
-## Contributing
+- PHP 8.3 o superior
+- Composer
+- MySQL o MariaDB
+- Node.js 20+ y npm
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Instalacion Local
 
-## Code of Conduct
+1. Instala dependencias:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+composer install
+```
 
-## Security Vulnerabilities
+2. Crea el archivo de entorno:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+copy .env.example .env
+```
 
-## License
+3. Genera la clave de Laravel:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+php artisan key:generate
+```
+
+4. Configura tu conexion de base de datos en `.env`.
+
+5. Ejecuta migraciones:
+
+```bash
+php artisan migrate
+```
+
+6. Si necesitas compilar assets del backend:
+
+```bash
+npm install
+npm run build
+```
+
+7. Inicia el servidor:
+
+```bash
+php artisan serve --host=127.0.0.1 --port=8001
+```
+
+## Scripts Utiles
+
+- `composer setup`: instala dependencias, crea `.env`, genera clave, migra y compila assets.
+- `composer test`: limpia config y ejecuta pruebas.
+- `composer dev`: levanta servidor, cola, logs y Vite en paralelo.
+
+## Variables De Entorno
+
+Variables clave usadas por este proyecto:
+
+```env
+APP_NAME="Vacaciones Pro"
+APP_ENV=local
+APP_URL=http://127.0.0.1:8001
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=vacation_system
+DB_USERNAME=root
+DB_PASSWORD=
+
+MAIL_MAILER=log
+MAIL_HOST=127.0.0.1
+MAIL_PORT=2525
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_FROM_ADDRESS="vacaciones@tema.com.pe"
+HR_NOTIFICATION_EMAILS=aqueque@tema.com.pe
+
+MASTER_DATA_API_URL=
+MASTER_DATA_API_TOKEN=
+LEGACY_UPLOADS_PATH=C:\trabajos\vacaciones\static\uploads
+```
+
+Notas:
+
+- `MAIL_MAILER=log` no envia correos reales; solo registra la salida en logs.
+- `HR_NOTIFICATION_EMAILS` acepta uno o varios correos separados por coma.
+- `LEGACY_UPLOADS_PATH` solo se usa si migras archivos heredados de la aplicacion anterior.
+
+## Endpoints Principales
+
+Publicos:
+
+- `POST /api/login`
+- `POST /api/auth/login`
+- `POST /api/forgot-password`
+- `POST /api/reset-password`
+- `GET /api/employee-info`
+- `GET /api/areas`
+- `GET /api/download-template`
+- `GET /api/colaboradores`
+- `POST /api/vacations`
+- `GET /api/vacations/{id}/pdf`
+- `GET /api/vacations/{id}/attachment`
+
+Protegidos con `auth:sanctum`:
+
+- `GET /api/me`
+- `POST /api/logout`
+- `POST /api/auth/logout`
+- `POST /api/auth/change-password`
+- `GET /api/vacations`
+- `GET /api/vacations/{id}`
+
+Solo administrador:
+
+- `PUT /api/vacations/{id}`
+- `PATCH /api/vacations/{id}/status`
+- `DELETE /api/vacations/{id}`
+- `GET /api/roles`
+- `GET /api/users`
+- `POST /api/users`
+- `PUT /api/users/{id}`
+- `DELETE /api/users/{id}`
+- `POST /api/colaboradores`
+- `PUT /api/colaboradores/{documento}`
+- `DELETE /api/colaboradores/{documento}`
+
+## PDFs Y Adjuntos
+
+- Los PDFs se generan al registrar o actualizar una solicitud.
+- Los archivos se sirven por endpoint para evitar depender de `storage:link`.
+- El frontend consume URLs tipo:
+
+```text
+/api/vacations/{id}/pdf
+/api/vacations/{id}/attachment
+```
+
+## Pruebas
+
+Ejecuta:
+
+```bash
+composer test
+```
+
+Si corres pruebas de notificaciones con SQLite, asegurate de tener habilitado `pdo_sqlite`.
+
+## Despliegue
+
+Para Hostinger revisa el documento:
+
+- `DEPLOY_HOSTINGER.md`
+
+Archivos relacionados:
+
+- `.env.hostinger`
+- `.htaccess`
+- `public/.htaccess`
+
+## Recomendaciones
+
+- No subas `.env`, `.env.hostinger`, `vendor/`, `node_modules/` ni archivos generados.
+- Si cambias configuracion en produccion, limpia y regenera cache:
+
+```bash
+php artisan config:clear
+php artisan config:cache
+```
+
+- Si Intelephense no detecta una clase nueva, ejecuta:
+
+```bash
+composer dump-autoload
+```
