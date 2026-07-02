@@ -23,7 +23,7 @@ class AuthController extends Controller
 
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['Las credenciales no son validas.'],
+                'email' => ['Las credenciales no son válidas.'],
             ]);
         }
 
@@ -49,7 +49,7 @@ class AuthController extends Controller
         $request->user()?->currentAccessToken()?->delete();
 
         return response()->json([
-            'message' => 'Sesion cerrada correctamente.',
+            'message' => 'Sesión cerrada correctamente.',
         ]);
     }
 
@@ -64,7 +64,7 @@ class AuthController extends Controller
 
         if (!$user || !Hash::check($data['current_password'], $user->password)) {
             throw ValidationException::withMessages([
-                'current_password' => ['La clave actual no es valida.'],
+                'current_password' => ['La clave actual no es válida.'],
             ]);
         }
 
@@ -86,7 +86,7 @@ class AuthController extends Controller
         Password::broker()->sendResetLink($data);
 
         return response()->json([
-            'message' => 'Si el correo existe, se envio el enlace de recuperacion.',
+            'message' => 'Si el correo existe, se envió el enlace de recuperación.',
         ]);
     }
 
@@ -109,12 +109,12 @@ class AuthController extends Controller
 
         if ($status !== Password::PASSWORD_RESET) {
             return response()->json([
-                'message' => 'No se pudo restablecer la contrasena.',
+                'message' => 'No se pudo restablecer la contraseña.',
             ], 422);
         }
 
         return response()->json([
-            'message' => 'Contrasena actualizada correctamente.',
+            'message' => 'Contraseña actualizada correctamente.',
         ]);
     }
 

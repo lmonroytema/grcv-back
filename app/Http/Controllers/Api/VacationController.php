@@ -256,7 +256,7 @@ class VacationController extends Controller
 
         if ($startDate->lt(now()->subDays(30)->startOfDay())) {
             abort(response()->json([
-                'message' => 'La fecha inicial debe ser igual o posterior a hace 30 dias.',
+                'message' => 'La fecha inicial debe ser igual o posterior a hace 30 días.',
             ], 422));
         }
 
@@ -268,7 +268,7 @@ class VacationController extends Controller
 
         if (in_array((int) $endDate->format('N'), [5, 6], true)) {
             abort(response()->json([
-                'message' => 'La fecha final no puede ser viernes o sabado.',
+                'message' => 'La fecha final no puede ser viernes o sábado.',
             ], 422));
         }
     }

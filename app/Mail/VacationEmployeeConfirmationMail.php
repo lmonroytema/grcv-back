@@ -21,7 +21,7 @@ class VacationEmployeeConfirmationMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Confirmacion de Solicitud de Vacaciones',
+            subject: 'Confirmación de Solicitud de Vacaciones',
         );
     }
 

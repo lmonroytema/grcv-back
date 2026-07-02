@@ -23,7 +23,7 @@ class VacationApproverNotificationMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Solicitud de Vacaciones Pendiente de Revision',
+            subject: 'Solicitud de Vacaciones Pendiente de Revisión',
             replyTo: [$this->vacation->email],
         );
     }

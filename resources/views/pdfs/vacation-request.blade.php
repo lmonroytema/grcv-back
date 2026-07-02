@@ -18,24 +18,24 @@
 <body>
     <div class="header">
         <p class="title">Solicitud de Vacaciones</p>
-        <p class="subtitle">Gestion, Registro y Control de Vacaciones</p>
+        <p class="subtitle">Gestión, Registro y Control de Vacaciones</p>
     </div>
 
     <div class="card">
         <div class="row"><span class="label">DNI:</span> {{ $vacation->dni }}</div>
         <div class="row"><span class="label">Nombre completo:</span> {{ $vacation->full_name }}</div>
         <div class="row"><span class="label">Correo:</span> {{ $vacation->email }}</div>
-        <div class="row"><span class="label">Area:</span> {{ $vacation->area }}</div>
+        <div class="row"><span class="label">Área:</span> {{ $vacation->area }}</div>
         <div class="row"><span class="label">Inicio:</span> {{ optional($vacation->start_date)->format('d/m/Y') }}</div>
         <div class="row"><span class="label">Fin:</span> {{ optional($vacation->end_date)->format('d/m/Y') }}</div>
-        <div class="row"><span class="label">Dias:</span> {{ $vacation->days }}</div>
+        <div class="row"><span class="label">Días:</span> {{ $vacation->days }}</div>
         <div class="row"><span class="label">Estado:</span> {{ match($vacation->estado){0 => 'Rechazado', 2 => 'Aprobado', default => 'Pendiente'} }}</div>
     </div>
 
     <div class="card attachment">
         <div class="row"><span class="label">Adjunto:</span> {{ $attachmentFilename }}</div>
         @if ($attachmentDataUri)
-            <img src="{{ $attachmentDataUri }}" alt="Adjunto de confirmacion">
+            <img src="{{ $attachmentDataUri }}" alt="Adjunto de confirmación">
         @else
             <p>El archivo adjunto no es una imagen embebible en el PDF.</p>
         @endif

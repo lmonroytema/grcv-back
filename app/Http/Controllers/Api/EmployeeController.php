@@ -20,7 +20,7 @@ class EmployeeController extends Controller
         if ($dni === '') {
             return response()->json([
                 'success' => false,
-                'message' => 'El numero de documento es obligatorio.',
+                'message' => 'El número de documento es obligatorio.',
             ], 422);
         }
 

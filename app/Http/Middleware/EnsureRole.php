@@ -23,7 +23,7 @@ class EnsureRole
 
         if ($roleName === null || !in_array($roleName, $roles, true)) {
             return new JsonResponse([
-                'message' => 'No tienes permisos para esta accion.',
+                'message' => 'No tienes permisos para esta acción.',
             ], 403);
         }
 

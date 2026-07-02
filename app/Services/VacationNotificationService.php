@@ -45,7 +45,7 @@ class VacationNotificationService
                 $summary['employee']['sent'] = true;
             } catch (Throwable $exception) {
                 report($exception);
-                $summary['warnings'][] = 'No se pudo enviar la confirmacion al solicitante.';
+                $summary['warnings'][] = 'No se pudo enviar la confirmación al solicitante.';
             }
         }
 
@@ -88,7 +88,7 @@ class VacationNotificationService
                 $summary['employee']['sent'] = true;
             } catch (Throwable $exception) {
                 report($exception);
-                $summary['warnings'][] = 'No se pudo enviar la notificacion de aprobacion al trabajador.';
+                $summary['warnings'][] = 'No se pudo enviar la notificación de aprobación al trabajador.';
             }
         } else {
             $summary['warnings'][] = 'No se pudo determinar el correo del trabajador aprobado.';
@@ -107,7 +107,7 @@ class VacationNotificationService
                 $summary['approver']['sent'] = true;
             } catch (Throwable $exception) {
                 report($exception);
-                $summary['warnings'][] = 'No se pudo enviar la notificacion de confirmacion al aprobador.';
+                $summary['warnings'][] = 'No se pudo enviar la notificación de confirmación al aprobador.';
             }
         }
 
@@ -126,7 +126,7 @@ class VacationNotificationService
             } catch (Throwable $exception) {
                 report($exception);
                 $summary['configured']['failed'][] = $recipient;
-                $summary['warnings'][] = 'No se pudo enviar la notificacion de aprobacion al correo configurado: '.$recipient;
+                $summary['warnings'][] = 'No se pudo enviar la notificación de aprobación al correo configurado: '.$recipient;
             }
         }
 
@@ -149,7 +149,7 @@ class VacationNotificationService
             } catch (Throwable $exception) {
                 report($exception);
                 $summary['hr']['failed'][] = $recipient;
-                $summary['warnings'][] = 'No se pudo enviar la notificacion a RRHH: '.$recipient;
+                $summary['warnings'][] = 'No se pudo enviar la notificación a RRHH: '.$recipient;
             }
         }
     }
@@ -170,7 +170,7 @@ class VacationNotificationService
             } catch (Throwable $exception) {
                 report($exception);
                 $summary['approvers']['failed'][] = $approver['email'];
-                $summary['warnings'][] = 'No se pudo enviar la notificacion al aprobador: '.$approver['email'];
+                $summary['warnings'][] = 'No se pudo enviar la notificación al aprobador: '.$approver['email'];
             }
         }
     }
@@ -184,7 +184,7 @@ class VacationNotificationService
         if (!$colaborador) {
             return [
                 'resolved' => [],
-                'warnings' => ['No se encontro el colaborador asociado para resolver aprobadores.'],
+                'warnings' => ['No se encontró el colaborador asociado para resolver aprobadores.'],
             ];
         }
 
@@ -215,7 +215,7 @@ class VacationNotificationService
         }
 
         if ($resolved === []) {
-            $warnings[] = 'No se encontraron correos validos para los aprobadores.';
+            $warnings[] = 'No se encontraron correos válidos para los aprobadores.';
         }
 
         return [

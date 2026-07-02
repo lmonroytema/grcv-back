@@ -5,14 +5,17 @@ namespace App\Services;
 use App\Models\VacationRequest;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class VacationPdfService
 {
     public function generate(VacationRequest $vacation): string
     {
         $attachmentPath = $this->resolveAttachmentPath($vacation->confirmation_image);
-        $attachmentMime = $attachmentPath !== null ? mime_content_type($attachmentPath) ?: null : null;
+        $attachmentMime = null;
+        if ($attachmentPath !== null) {
+            $detectedMime = mime_content_type($attachmentPath);
+            $attachmentMime = $detectedMime !== false ? $detectedMime : null;
+        }
         $attachmentDataUri = null;
 
         if ($attachmentPath !== null && is_string($attachmentMime) && str_starts_with($attachmentMime, 'image/')) {
@@ -25,12 +28,7 @@ class VacationPdfService
             'attachmentFilename' => $vacation->confirmation_image,
         ]);
 
-        $filename = sprintf(
-            '%s-%s-%s.pdf',
-            optional($vacation->end_date)->format('Ymd') ?? now()->format('Ymd'),
-            preg_replace('/[^0-9]/', '', $vacation->dni) ?: 'dni',
-            Str::limit(Str::slug($vacation->full_name, '-'), 45, '') ?: 'solicitud'
-        );
+        $filename = $this->buildFilename($vacation);
 
         Storage::disk('public')->put('vacations/pdfs/'.$filename, $pdf->output());
 
@@ -67,5 +65,21 @@ class VacationPdfService
         $legacyPath = $legacyBase.DIRECTORY_SEPARATOR.$filename;
 
         return is_file($legacyPath) ? $legacyPath : null;
+    }
+
+    private function buildFilename(VacationRequest $vacation): string
+    {
+        $formattedDate = optional($vacation->end_date)->format('Ymd') ?? now()->format('Ymd');
+        $fullName = trim(preg_replace('/\s+/', ' ', $vacation->full_name) ?? '');
+        $dni = trim((string) $vacation->dni);
+
+        $filename = sprintf(
+            '%s - %s - %s.pdf',
+            $formattedDate,
+            $fullName !== '' ? $fullName : 'SOLICITUD',
+            $dni !== '' ? $dni : 'DNI'
+        );
+
+        return preg_replace('/[\/:*?"<>|]/', '', $filename) ?? 'solicitud-vacaciones.pdf';
     }
 }

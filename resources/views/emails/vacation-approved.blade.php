@@ -12,14 +12,14 @@
     <p>
         <strong>Empleado:</strong> {{ $vacation->full_name }}<br>
         <strong>DNI:</strong> {{ $vacation->dni }}<br>
-        <strong>Area:</strong> {{ $vacation->area }}<br>
+        <strong>Área:</strong> {{ $vacation->area }}<br>
         <strong>Periodo:</strong> {{ optional($vacation->start_date)->format('Y-m-d') }} al {{ optional($vacation->end_date)->format('Y-m-d') }}<br>
-        <strong>Dias aprobados:</strong> {{ $vacation->days }}<br>
+        <strong>Días aprobados:</strong> {{ $vacation->days }}<br>
         <strong>Aprobado por:</strong> {{ $approvedByName }}
     </p>
 
     <p>Puede revisar el estado actualizado desde el sistema.</p>
 
-    <p>Saludos,<br>Sistema de Gestion de Vacaciones</p>
+    <p>Saludos,<br>Sistema de Gestión de Vacaciones</p>
 </body>
 </html>

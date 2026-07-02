@@ -48,7 +48,7 @@ class VacationBalanceService
                     'type' => 'approval',
                     'days' => $days,
                     'effective_date' => now()->toDateString(),
-                    'notes' => 'Aprobacion de solicitud de vacaciones.',
+                    'notes' => 'Aprobación de solicitud de vacaciones.',
                     'metadata' => [
                         'vacation_request_id' => $vacation->id,
                     ],
@@ -69,7 +69,7 @@ class VacationBalanceService
                     'type' => 'approval_reversal',
                     'days' => -1 * $days,
                     'effective_date' => now()->toDateString(),
-                    'notes' => 'Reversion de aprobacion de solicitud.',
+                    'notes' => 'Reversión de aprobación de solicitud.',
                     'metadata' => [
                         'vacation_request_id' => $vacation->id,
                     ],
@@ -86,13 +86,13 @@ class VacationBalanceService
 
         if ($days <= 0) {
             throw ValidationException::withMessages([
-                'days' => ['Los dias tomados deben ser mayores a cero.'],
+                'days' => ['Los días tomados deben ser mayores a cero.'],
             ]);
         }
 
         if ((float) $balance->reserved_days < $days) {
             throw ValidationException::withMessages([
-                'days' => ['No puedes registrar mas dias tomados que dias autorizados pendientes.'],
+                'days' => ['No puedes registrar más días tomados que días autorizados pendientes.'],
             ]);
         }
 

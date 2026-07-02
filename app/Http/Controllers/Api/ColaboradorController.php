@@ -18,7 +18,7 @@ class ColaboradorController extends Controller
 
             if (!$colaborador) {
                 return response()->json([
-                    'message' => 'No se encontro el colaborador.',
+                    'message' => 'No se encontró el colaborador.',
                 ], 404);
             }
 

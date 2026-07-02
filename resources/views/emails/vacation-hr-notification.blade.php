@@ -10,13 +10,13 @@
     <p>
         <strong>Empleado:</strong> {{ $vacation->full_name }}<br>
         <strong>DNI:</strong> {{ $vacation->dni }}<br>
-        <strong>Area:</strong> {{ $vacation->area }}<br>
+        <strong>Área:</strong> {{ $vacation->area }}<br>
         <strong>Fecha de inicio:</strong> {{ optional($vacation->start_time)->format('Y-m-d H:i:s') }}<br>
         <strong>Fecha de fin:</strong> {{ optional($vacation->end_time)->format('Y-m-d H:i:s') }}<br>
-        <strong>Dias totales:</strong> {{ $vacation->days }}<br>
+        <strong>Días totales:</strong> {{ $vacation->days }}<br>
         <strong>Correo del empleado:</strong> {{ $vacation->email }}
     </p>
 
-    <p>Revise la solicitud en el sistema para continuar con la gestion.</p>
+    <p>Revise la solicitud en el sistema para continuar con la gestión.</p>
 </body>
 </html>
