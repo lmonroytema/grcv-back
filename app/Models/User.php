@@ -70,4 +70,19 @@ class User extends Authenticatable
             ? $this->role?->name
             : $this->role()->value('name');
     }
+
+    public function isAdmin(): bool
+    {
+        return $this->role_name === 'Administrador';
+    }
+
+    public function isSupervisor(): bool
+    {
+        return $this->role_name === 'Supervisor';
+    }
+
+    public function isEmployee(): bool
+    {
+        return in_array($this->role_name, ['Empleado', 'Trabajador'], true);
+    }
 }

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Colaborador;
 use App\Models\User;
 use App\Models\VacationRequest;
+use App\Services\VacationBalanceService;
 use App\Services\VacationNotificationService;
 use App\Services\VacationPdfService;
 use Carbon\Carbon;
@@ -18,7 +20,8 @@ class VacationController extends Controller
 {
     public function __construct(
         private readonly VacationPdfService $pdfService,
-        private readonly VacationNotificationService $notificationService
+        private readonly VacationNotificationService $notificationService,
+        private readonly VacationBalanceService $balanceService
     )
     {
     }
@@ -28,8 +31,17 @@ class VacationController extends Controller
         $user = $request->user();
         $query = VacationRequest::query()->orderByDesc('id');
 
-        if ($user !== null && $user->role_name === 'Trabajador') {
+        if ($user !== null && $this->isEmployee($user)) {
             $query->where('email', $user->email);
+        } elseif ($user !== null && $user->isSupervisor()) {
+            $subordinateDnis = $this->resolveSubordinateDnis($user);
+            $query->where(function ($builder) use ($user, $subordinateDnis): void {
+                $builder->where('email', $user->email);
+
+                if ($subordinateDnis !== []) {
+                    $builder->orWhereIn('dni', $subordinateDnis);
+                }
+            });
         }
 
         if ($request->filled('estado')) {
@@ -40,11 +52,11 @@ class VacationController extends Controller
             $query->where('dni', 'like', '%'.$request->string('dni')->trim().'%');
         }
 
-        if ($request->filled('email') && $this->isAdminOrVisitor($user?->role_name)) {
+        if ($request->filled('email') && !$this->isEmployee($user)) {
             $query->where('email', 'like', '%'.$request->string('email')->trim().'%');
         }
 
-        if ($request->filled('search') && $this->isAdminOrVisitor($user?->role_name)) {
+        if ($request->filled('search')) {
             $term = '%'.$request->string('search')->trim().'%';
             $query->where(function ($builder) use ($term): void {
                 $builder->where('dni', 'like', $term)
@@ -73,7 +85,7 @@ class VacationController extends Controller
     public function store(Request $request): JsonResponse
     {
         $role = $request->user()?->role_name;
-        if (in_array($role, ['Trabajador', 'Visitante'], true)) {
+        if (in_array($role, ['Empleado', 'Trabajador', 'Visitante'], true)) {
             return response()->json([
                 'message' => 'Tu perfil es solo de consulta y no puede registrar solicitudes.',
             ], 403);
@@ -150,13 +162,41 @@ class VacationController extends Controller
 
     public function updateStatus(Request $request, VacationRequest $vacation): JsonResponse
     {
+        $user = $request->user();
+        if ($user === null) {
+            abort(response()->json(['message' => 'No autenticado.'], 401));
+        }
+
+        $this->ensureCanApprove($user, $vacation);
+
         $data = $request->validate([
             'estado' => ['required', 'integer', Rule::in([0, 1, 2])],
         ]);
 
-        $vacation->update(['estado' => $data['estado']]);
+        $previousStatus = (int) $vacation->estado;
+        $newStatus = (int) $data['estado'];
 
-        return response()->json($this->transformVacation($vacation->fresh()));
+        $payload = ['estado' => $newStatus];
+
+        if ($newStatus === 2) {
+            $payload['approved_by_user_id'] = $user->id;
+            $payload['approved_at'] = now();
+        } elseif ($previousStatus === 2) {
+            $payload['approved_by_user_id'] = null;
+            $payload['approved_at'] = null;
+        }
+
+        $vacation->update($payload);
+        $vacation = $vacation->fresh(['approvedBy']);
+        $this->balanceService->syncApprovalStatus($vacation, $previousStatus, $newStatus, $user);
+
+        $response = $this->transformVacation($vacation);
+
+        if ($previousStatus !== 2 && $newStatus === 2) {
+            $response['notifications'] = $this->notificationService->sendApprovalNotifications($vacation, $user);
+        }
+
+        return response()->json($response);
     }
 
     public function destroy(VacationRequest $vacation): JsonResponse
@@ -257,14 +297,75 @@ class VacationController extends Controller
             abort(response()->json(['message' => 'No autenticado.'], 401));
         }
 
-        if ($user->role_name === 'Trabajador' && $user->email !== $vacation->email) {
+        if ($this->isEmployee($user) && $user->email !== $vacation->email) {
+            abort(response()->json(['message' => 'No tienes permiso para ver este registro.'], 403));
+        }
+
+        if ($user->isSupervisor() && $user->email !== $vacation->email && !$this->isSubordinateVacation($user, $vacation)) {
             abort(response()->json(['message' => 'No tienes permiso para ver este registro.'], 403));
         }
     }
 
-    private function isAdminOrVisitor(?string $role): bool
+    private function isEmployee(?User $user): bool
     {
-        return in_array($role, ['Administrador', 'Visitante'], true);
+        return $user?->isEmployee() ?? false;
+    }
+
+    private function ensureCanApprove(User $user, VacationRequest $vacation): void
+    {
+        if ($user->isAdmin()) {
+            return;
+        }
+
+        if ($user->isSupervisor() && $this->isSubordinateVacation($user, $vacation) && $user->email !== $vacation->email) {
+            return;
+        }
+
+        abort(response()->json(['message' => 'No tienes permiso para aprobar esta solicitud.'], 403));
+    }
+
+    private function isSubordinateVacation(User $user, VacationRequest $vacation): bool
+    {
+        return in_array($vacation->dni, $this->resolveSubordinateDnis($user), true);
+    }
+
+    private function resolveSubordinateDnis(User $user): array
+    {
+        $colaborador = $user->relationLoaded('colaborador')
+            ? $user->colaborador
+            : $user->colaborador()->first();
+
+        if (!$colaborador) {
+            return [];
+        }
+
+        $identifiers = array_values(array_filter([
+            $user->email,
+            $colaborador->n_documento,
+            $colaborador->apellidos_y_nombres,
+        ], static fn (?string $value): bool => is_string($value) && trim($value) !== ''));
+
+        if ($identifiers === []) {
+            return [];
+        }
+
+        $normalizedIdentifiers = array_values(array_unique(array_map(
+            fn (string $value): string => Str::lower(trim((string) preg_replace('/\s+/', ' ', $value))),
+            $identifiers
+        )));
+
+        return Colaborador::query()
+            ->where(function ($builder) use ($normalizedIdentifiers): void {
+                foreach (['aprobador_1', 'aprobador_2'] as $field) {
+                    foreach ($normalizedIdentifiers as $identifier) {
+                        $builder->orWhereRaw('LOWER(TRIM('.$field.')) = ?', [$identifier]);
+                    }
+                }
+            })
+            ->pluck('n_documento')
+            ->filter(static fn (?string $dni): bool => is_string($dni) && $dni !== '')
+            ->values()
+            ->all();
     }
 
     private function transformVacation(VacationRequest $vacation): array
@@ -290,6 +391,8 @@ class VacationController extends Controller
                 2 => 'Aprobado',
                 default => 'Pendiente',
             },
+            'approved_at' => optional($vacation->approved_at)->format('Y-m-d H:i:s'),
+            'approved_by_name' => $vacation->approvedBy?->visible_name,
             'pdf_url' => $vacation->pdf_file ? url('/api/vacations/'.$vacation->id.'/pdf') : null,
             'attachment_url' => url('/api/vacations/'.$vacation->id.'/attachment'),
         ];

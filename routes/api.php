@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ColaboradorController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\UserManagementController;
+use App\Http\Controllers\Api\VacationBalanceController;
 use App\Http\Controllers\Api\VacationController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,10 +33,11 @@ Route::middleware('auth:sanctum')->group(function (): void {
 
     Route::get('/vacations', [VacationController::class, 'index']);
     Route::get('/vacations/{vacation}', [VacationController::class, 'show']);
+    Route::patch('/vacations/{vacation}/status', [VacationController::class, 'updateStatus'])
+        ->middleware('role:Administrador,Supervisor');
 
     Route::middleware('role:Administrador')->group(function (): void {
         Route::put('/vacations/{vacation}', [VacationController::class, 'update']);
-        Route::patch('/vacations/{vacation}/status', [VacationController::class, 'updateStatus']);
         Route::delete('/vacations/{vacation}', [VacationController::class, 'destroy']);
 
         Route::get('/roles', [UserManagementController::class, 'roles']);
@@ -47,5 +49,9 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::post('/colaboradores', [ColaboradorController::class, 'store']);
         Route::put('/colaboradores/{documento}', [ColaboradorController::class, 'update']);
         Route::delete('/colaboradores/{documento}', [ColaboradorController::class, 'destroy']);
+
+        Route::get('/vacation-balances', [VacationBalanceController::class, 'index']);
+        Route::post('/vacation-balances/monthly-accrual', [VacationBalanceController::class, 'applyMonthlyAccrual']);
+        Route::post('/vacation-balances/taken', [VacationBalanceController::class, 'registerTaken']);
     });
 });

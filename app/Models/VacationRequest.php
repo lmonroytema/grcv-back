@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class VacationRequest extends Model
 {
@@ -29,6 +30,8 @@ class VacationRequest extends Model
         'confirmation_image',
         'pdf_file',
         'estado',
+        'approved_by_user_id',
+        'approved_at',
     ];
 
     protected function casts(): array
@@ -40,6 +43,7 @@ class VacationRequest extends Model
             'end_date' => 'date:Y-m-d',
             'days' => 'integer',
             'estado' => 'integer',
+            'approved_at' => 'datetime:Y-m-d H:i:s',
         ];
     }
 
@@ -51,5 +55,10 @@ class VacationRequest extends Model
             $this->first_name,
             $this->second_name,
         ])));
+    }
+
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by_user_id');
     }
 }

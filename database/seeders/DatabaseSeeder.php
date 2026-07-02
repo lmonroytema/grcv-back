@@ -13,7 +13,8 @@ class DatabaseSeeder extends Seeder
     {
         $roles = [
             'Administrador',
-            'Trabajador',
+            'Supervisor',
+            'Empleado',
             'Visitante',
         ];
 

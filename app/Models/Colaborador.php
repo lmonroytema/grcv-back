@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Colaborador extends Model
 {
@@ -28,5 +30,20 @@ class Colaborador extends Model
         return [
             'fecha_ingreso' => 'date:Y-m-d',
         ];
+    }
+
+    public function user(): HasOne
+    {
+        return $this->hasOne(User::class, 'email', 'correo');
+    }
+
+    public function vacationBalance(): HasOne
+    {
+        return $this->hasOne(VacationBalance::class, 'colaborador_id');
+    }
+
+    public function balanceMovements(): HasMany
+    {
+        return $this->hasMany(VacationBalanceMovement::class, 'colaborador_id');
     }
 }

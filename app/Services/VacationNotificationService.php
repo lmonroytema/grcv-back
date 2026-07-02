@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Mail\VacationApproverNotificationMail;
+use App\Mail\VacationApprovedMail;
 use App\Mail\VacationEmployeeConfirmationMail;
 use App\Mail\VacationHrNotificationMail;
 use App\Models\Colaborador;
+use App\Models\User;
 use App\Models\VacationRequest;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -49,6 +51,84 @@ class VacationNotificationService
 
         $this->sendHrNotifications($vacation, $summary);
         $this->sendApproverNotifications($vacation, $summary);
+
+        return $summary;
+    }
+
+    public function sendApprovalNotifications(VacationRequest $vacation, User $approvedBy): array
+    {
+        $summary = [
+            'employee' => [
+                'sent' => false,
+                'recipient' => null,
+            ],
+            'approver' => [
+                'sent' => false,
+                'recipient' => null,
+            ],
+            'configured' => [
+                'sent' => [],
+                'failed' => [],
+            ],
+            'warnings' => [],
+        ];
+
+        $approvedByName = $approvedBy->visible_name ?: $approvedBy->email;
+        $employeeEmail = $this->normalizeEmail($vacation->email);
+
+        if ($employeeEmail !== null) {
+            $summary['employee']['recipient'] = $employeeEmail;
+
+            try {
+                Mail::to($employeeEmail)->send(new VacationApprovedMail(
+                    $vacation,
+                    $approvedByName,
+                    $vacation->full_name
+                ));
+                $summary['employee']['sent'] = true;
+            } catch (Throwable $exception) {
+                report($exception);
+                $summary['warnings'][] = 'No se pudo enviar la notificacion de aprobacion al trabajador.';
+            }
+        } else {
+            $summary['warnings'][] = 'No se pudo determinar el correo del trabajador aprobado.';
+        }
+
+        $approverEmail = $this->normalizeEmail($approvedBy->email);
+        if ($approverEmail !== null) {
+            $summary['approver']['recipient'] = $approverEmail;
+
+            try {
+                Mail::to($approverEmail)->send(new VacationApprovedMail(
+                    $vacation,
+                    $approvedByName,
+                    $approvedByName
+                ));
+                $summary['approver']['sent'] = true;
+            } catch (Throwable $exception) {
+                report($exception);
+                $summary['warnings'][] = 'No se pudo enviar la notificacion de confirmacion al aprobador.';
+            }
+        }
+
+        foreach ($this->uniqueEmails(config('vacations.notifications.approval_emails', [])) as $recipient) {
+            if ($recipient === $employeeEmail || $recipient === $approverEmail) {
+                continue;
+            }
+
+            try {
+                Mail::to($recipient)->send(new VacationApprovedMail(
+                    $vacation,
+                    $approvedByName,
+                    'responsable de control'
+                ));
+                $summary['configured']['sent'][] = $recipient;
+            } catch (Throwable $exception) {
+                report($exception);
+                $summary['configured']['failed'][] = $recipient;
+                $summary['warnings'][] = 'No se pudo enviar la notificacion de aprobacion al correo configurado: '.$recipient;
+            }
+        }
 
         return $summary;
     }
